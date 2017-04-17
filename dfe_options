@@ -1,0 +1,10 @@
+max_eigs_ite 1000
+eigs_tol 1e-10
+max_dim 101
+read_initial 0
+centralize 1
+normalize 0
+eta 0.1
+max_ite 50
+nr_fold 3
+num_precision 1e-16

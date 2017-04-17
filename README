@@ -1,0 +1,125 @@
+
+Author: Shuai Huang, The Johns Hopkins University.
+Email: shuang40@jhu.edu
+
+Last change: 09/22/2016
+Change log: 
+    v1.0 (SH) - First release (09/22/2016)
+    
+
+----------------------------------------------------------------
+This package contains source code for performing the supervised dimensionality reduction approach described in the following paper:
+
+@INPROCEEDINGS{MIM2016,
+author={S. Huang and T. D. Tran},
+booktitle={2016 IEEE International Conference on Image Processing (ICIP)},
+title={Dimensionality reduction for image classification via mutual information maximization},
+year={2016},
+pages={509-513},
+month={Sept},
+}
+
+If you use this code and find it helpful, please cite the above paper. Thanks:)
+----------------------------------------------------------------
+
+The code is written in C++, and requires the following additional libraries:
+    a) Eigen (C++ library) http://eigen.tuxfamily.org/
+    b) Spectra: C++ Library For Large Scale Eigenvalue Problems https://github.com/yixuan/spectra/
+    c) OpenBLAS: An optimized BLAS library http://www.openblas.net/
+    
+For convenience, Eigen, Spectra, OpenBLAS are all included in this package.
+-----------------------------------------------------------------
+
+****************
+* Installation *
+****************
+Please follow the following steps:
+
+0. Go to the directory where the readme file is.
+
+1. Eigen and Spectra do not need additional installation steps. OpenBLAS should be complied and installed in the UNIX environment.
+    a) Go to OpenBLAS directory: cd ./OpenBLAS-0.2.19
+    b) Compile: make
+    c) Install: sudo make install 
+       
+2. Compile the source code for dimensionality reduction. By default, the OpenBLAS is installed to the directory /opt/OpenBLAS . Should you choose your own directory, please use the correct path accordingly.
+    
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/OpenBLAS/lib/
+    g++ -fopenmp -O3 -o main main.cpp DataReader.cpp DimRed.cpp DFE.cpp global.cpp -I ./eigen-eigen-3.3.3 -I ./spectra-0.5.0/include -I /opt/OpenBLAS/include/ -L /opt/OpenBLAS/lib/ -lopenblas
+       
+**********************
+* Running Experiment *
+**********************
+
+The experiments can be run using the bash script "run_main.sh", remember to adjust the OpenBLAS path in "LD_LIBRARY_PATH" and the number of computing threads in "OMP_NUM_THREADS" accordingly. 
+
+The high-dimensional data "V" is a "n" by "d" matrix, where "n" is the number of samples, "d" is the number of features. The MIM algorithm extracts the low-dimensional projection basis "S" in the following way:
+
+    S = [];
+    for i = 1 : num_tsf_dim
+        S_i = f(max_dim); % f(max_dim) returns a "d" by "max_dim" orthonormal basis "S_i"
+        S = [S S_i];
+    end
+
+This produces a "d" by "num_tsf_dim * max_dim" orthonormal basis "S". The low-dimensional data "U" is then computed by U=V*S
+    
+
+The "run_main.sh" takes the 7 arguments:
+    1) train_data:    the labeled training data saved as a "n" by "d" matrix in an ASCII format file. Each row corresponds to a sample, each column corresponds to a feature. The samples belonging to the same class should be grouped together.
+    2) test_Data:     the unlabeled test data in the same format as train_data.
+    3) opt:           the option file specifying the value of "num_tsf_dim"
+    4) lab_train:     the corresponding training labels saved as a "n" by "1" matrix, should start from "1" end with "C" - the number of classes. Since the samples of the same class are together, the lab_train should look like this [1 1 1 2 2 3 3 3 3 ... C C C]^T.
+    5) train_red:     the projected low-dimensional training data.
+    6) test_red:      the projected low-dimensional test data.
+    7) tsf:           the "d" by "num_tsf_dim * max_dim" projection orthonormal basis "S".
+
+******************
+* Control option *
+******************
+
+The MIM algorithm is controlled by the two option files "main_options" and "dfe_options":
+
+"main_options": 
+    1) num_tsf_dim:    an integer >=1
+    
+"dfe_options":
+    1) max_eigs_ite:   the maximum number of iterations the "eigs" function in the "Spectra" library could take to compute the eigenvalues, eigenvectors
+    2) eigs_tol:       the convergence criterion of the "eigs" function
+    3) max_dim:        the number of eigenvalues to be computed by the "eigs" function
+    4) read_initial:   set to 0, do not initialize the rho value.
+    5) centralize:     if set to 1, center the data according to train_data.
+    6) normalize:      if set to 1, normalize the data according to train_data.
+    7) eta:            the step size eta in the original paper
+    8) max_ite:        the maximum number of iterations on the MIM algorithm
+    9) nr_fold:        the number of folds in the cross validation, every class should have sufficient samples so that in each fold, the number of samples per class should be >2. nr_fold should be >=2.
+    10) num_precision: added to avoid log 0.
+    
+*******************
+* S-MIM and C-MIM *
+*******************    
+
+Let C be the number of classes.
+
+"S-MIM" will extract the projection dimensions one by one.
+    1) please set max_dim in "dfe_options" to 1
+    2) please set num_tsf_dim in "main_options" to the maximum number of dimensions you want to extract. The recommended value should be greater than C.
+
+"C-MIM" will extract the projection dimensions in one batch.
+    1) please set max_dim in "dfe_options" to the number of dimensions you want to extract. the recommended value is C-1.
+    2) please set num_tsf_dim in "main_options" to 1.
+    
+***********
+* Example *
+***********
+
+1) Download the accompanying data files and use the included matlab script to write the data into ASCII files.
+2) Copy the generated ASCII files to the current directory.
+3) Run the following command in the terminal, remember to set the path in run_main.sh correctly
+
+    ./run_main.sh ./train_101_1 ./test_101_1 ./options ./train_lab_1 ./train_101_1_dfe ./test_101_1_dfe ./tsf_101_dfe
+    
+You are welcome to try the MIM algorithm on your own data, don't forget to change the parameters accordingly! Thanks:)
+
+
+
+
