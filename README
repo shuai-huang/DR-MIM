@@ -113,7 +113,7 @@ Let C be the number of classes.
 * Example *
 ***********
 
-1) Download the accompanying data files and use the included matlab script to write the data into ASCII files.
+1) Download the accompanying data files from Shuai's homepage and use the included matlab script to write the data into ASCII files.
 2) Copy the generated ASCII files to the current directory.
 3) Run the following command in the terminal, remember to set the path in run_main.sh correctly
 
